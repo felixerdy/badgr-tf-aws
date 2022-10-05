@@ -133,9 +133,10 @@ resource "aws_security_group" "mysql_sg" {
   }
 
   ingress {
-      from_port   = 3306
-      to_port     = 3306
-      protocol    = "tcp"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = [var.access_ip]
   }
 
   egress {
