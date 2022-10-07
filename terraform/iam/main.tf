@@ -18,6 +18,13 @@ resource "aws_iam_policy" "ses_full_access" {
                 "ses:*"
             ],
             Resource: "*"
+        },
+        {
+            Effect: "Allow",
+            Action: [
+              "sns:*"
+            ],
+            Resource: "*"
         }
     ]
   })
