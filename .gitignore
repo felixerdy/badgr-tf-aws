@@ -36,4 +36,4 @@ logs
 *.pem
 
 tf_ansible_vars_file.yml
-ansible/hosts
+hosts
