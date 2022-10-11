@@ -1,48 +1,65 @@
 ---
 - hosts: all
+  name: Install Badgr Server
   become: true
+  vars_files:
+    - ./vars/tf_ansible_vars_file.yml
 
   tasks:
     - name: Install aptitude
-      apt:
+      ansible.builtin.apt:
         name: aptitude
-        state: latest
         update_cache: true
 
     - name: Install required system packages
-      apt:
+      ansible.builtin.apt:
         pkg:
           - apt-transport-https
           - ca-certificates
           - curl
           - software-properties-common
-        state: latest
         update_cache: true
 
+    - name: Add Deadsnakes PPA
+      ansible.builtin.apt_repository:
+        repo: ppa:deadsnakes/ppa
+        state: present
+
+    - name: Install python3.8
+      ansible.builtin.apt:
+        pkg:
+          - python3.8
+          - python3-pip
+
     - name: Add Docker GPG apt Key
-      apt_key:
+      ansible.builtin.apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
     - name: Add Docker Repository
-      apt_repository:
+      ansible.builtin.apt_repository:
         repo: deb https://download.docker.com/linux/ubuntu focal stable
         state: present
 
     - name: Update apt and install docker-ce
-      apt:
+      ansible.builtin.apt:
         name: docker-ce
-        state: latest
         update_cache: true
 
     - name: Add remote "ubuntu" user to "docker" group
-      user:
+      ansible.builtin.user:
         name: "ubuntu"
         group: "docker"
-        append: yes
+        append: true
+
+    - name: Install docker python package
+      ansible.builtin.pip:
+        name:
+          - docker
+          - docker-compose
 
     - name: Install docker-compose
-      get_url:
+      ansible.builtin.get_url:
         url: https://github.com/docker/compose/releases/download/v2.11.0/docker-compose-linux-x86_64
         dest: /usr/local/bin/docker-compose
         mode: "u+x,g+x"
@@ -51,3 +68,60 @@
       ansible.builtin.git:
         repo: https://github.com/reedu-reengineering-education/badgr-server.git
         dest: /home/ubuntu/badgr-server
+
+    - name: Creating .env file
+      ansible.builtin.copy:
+        dest: /home/ubuntu/badgr-server/.env
+        mode: "777"
+        content: |
+          TIME_ZONE=Europe/Berlin
+          LANGUAGE_CODE=de-de
+          DB_NAME=mydb
+          DB_USER=foo
+          DB_PASSWORD=foobarbaz
+          DB_HOST={{tf_db_endpoint}}
+          DB_PORT=3306
+          CACHE_LOCATION={{tf_memcached_endpoint}}:11211
+          AWS_ACCESS_KEY_ID={{tf_access_key}}
+          AWS_ACCESS_KEY_SECRET={{tf_secret_key}}
+          AWS_REGION_NAME=eu-central-1
+          AWS_REGION=eu-central-1
+          DEFAULT_FROM_EMAIL=you@example.com
+          SERVER_EMAIL=your-server@example.com
+          AWS_STORAGE_BUCKET_NAME=badgr-s3
+          AWS_S3_CUSTOM_DOMAIN={{tf_s3_endpoint}}
+          HTTP_ORIGIN=http://{{inventory_hostname}}
+          BADGR_APPROVED_ISSUERS_ONLY=False
+          GDPR_COMPLIANCE_NOTIFY_ON_FIRST_AWARD=True
+          SECRET_KEY=abc
+          UNSUBSCRIBE_KEY=abc
+
+    - name: Deploy Docker Compose stack
+      community.docker.docker_compose:
+        project_src: /home/ubuntu/badgr-server
+        files:
+          - docker-compose.standalone.yml
+
+    - name: Run migration script
+      changed_when: false
+      ansible.builtin.command:
+        docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
+        exec api python /badgr_server/manage.py migrate
+
+    - name: Generate docs swagger file(s)
+      changed_when: false
+      ansible.builtin.command:
+        docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml  \
+        exec api python /badgr_server/manage.py dist
+
+    - name: Collectstatic
+      changed_when: false
+      ansible.builtin.command:
+        docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
+        exec api python /badgr_server/manage.py collectstatic --noinput
+
+    # - name: Create superuser
+    #   changed_when: false
+    #   ansible.builtin.command:
+    #     docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
+    #     exec api python /badgr_server/manage.py createsuperuser --noinput --username user --email user@email.com

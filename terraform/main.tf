@@ -27,3 +27,11 @@ module "s3" {
 module "iam" {
   source = "./iam"
 }
+
+# module "alb" {
+#   source        = "./alb"
+#   vpc_id        = module.network.vpc_id
+#   ec2_public_ip = module.ec2.ec2_public_ip
+#   public_subnet = module.network.public_subnet
+#   public_sg     = module.network.public_sg
+# }

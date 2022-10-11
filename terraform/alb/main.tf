@@ -1,5 +1,5 @@
 resource "aws_lb" "web" {
-  subnets         = var.public_subnet
+  subnets         = [var.public_subnet]
   security_groups = [var.public_sg]
 }
 
@@ -18,7 +18,7 @@ resource "aws_lb_target_group" "web" {
 }
 
 resource "aws_lb_listener" "web_http" {
-  load_balancer_arn = local.alb_arn
+  load_balancer_arn = aws_lb.web.arn
   port              = 80
   protocol          = "HTTP"
   default_action {
@@ -28,7 +28,8 @@ resource "aws_lb_listener" "web_http" {
 }
 
 resource "aws_lb_target_group_attachment" "web" {
+  count = 2
   target_group_arn = aws_lb_target_group.web.arn
-  target_id        = var.ec2_public_ip.*
+  target_id        = var.ec2_public_ip[count.index]
   port             = 80
 }
