@@ -91,7 +91,7 @@
           SERVER_EMAIL={{badgr_from_email}}
           AWS_STORAGE_BUCKET_NAME=badgr-s3
           AWS_S3_CUSTOM_DOMAIN={{tf_s3_endpoint}}
-          HTTP_ORIGIN=http://{{inventory_hostname}}
+          HTTP_ORIGIN=http://{{tf_elb_dns}}
           BADGR_APPROVED_ISSUERS_ONLY={{badgr_approved_issuers_only}}
           GDPR_COMPLIANCE_NOTIFY_ON_FIRST_AWARD={{badgr_gdpr_compliance_notify_on_first_award}}
           SECRET_KEY={{badgr_secret_key}}
@@ -104,7 +104,8 @@
           - docker-compose.standalone.yml
 
     - name: Run migration script
-      changed_when: false
+      when: ansible_hostname == play_hosts[0]
+      run_once: true
       ansible.builtin.command:
         docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
         exec api python /badgr_server/manage.py migrate

@@ -28,7 +28,7 @@ resource "aws_subnet" "public_subnet" {
 
 # Create a Private Subnet
 resource "aws_subnet" "private_subnet" {
-  count = 2
+  count                   = 2
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, 2 * (count.index + 1))
   map_public_ip_on_launch = true
@@ -47,7 +47,7 @@ resource "aws_route_table_association" "public_assoc" {
 
 # Associate the private Route Table to the private Subnet
 resource "aws_route_table_association" "private_assoc" {
-  count = 2
+  count          = 2
   subnet_id      = aws_subnet.private_subnet[count.index].id
   route_table_id = aws_route_table.private_rt.id
 }
@@ -97,22 +97,16 @@ resource "aws_security_group" "public_sg" {
   }
 
   ingress {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = [var.access_ip]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.access_ip]
   }
   ingress {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = [var.access_ip]
-  }
-  ingress {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = [var.access_ip]
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [var.elb_sg.id]
   }
 
   egress {

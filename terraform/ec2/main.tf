@@ -16,7 +16,7 @@ resource "aws_key_pair" "key_pair" {
 
 # Create a EC2 Instance (Ubuntu 20)
 resource "aws_instance" "node" {
-  count = 2
+  count                  = 2
   instance_type          = "t2.micro" # free instance
   ami                    = "ami-0d527b8c289b4af7f"
   key_name               = aws_key_pair.key_pair.id
@@ -27,8 +27,6 @@ resource "aws_instance" "node" {
     Name = "TF Generated EC2"
   }
 
-  #user_data = file("${path.root}/ec2/userdata.tpl")
-
   root_block_device {
     volume_size = 10
   }
@@ -36,6 +34,6 @@ resource "aws_instance" "node" {
 
 # Create and assosiate an Elastic IP
 resource "aws_eip" "eip" {
-  count = 2
-  instance = "${element(aws_instance.node.*.id,count.index)}"
+  count    = 2
+  instance = element(aws_instance.node.*.id, count.index)
 }
