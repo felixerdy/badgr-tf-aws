@@ -1,0 +1,12 @@
+# Variables for Badgr
+
+# Required to change
+badgr_from_email: you@example.com
+badgr_secret_key: supersecretkey
+badgr_unsubscribe_key: supersecretunsubscribekey
+
+# You don't have to change these if you don't want
+badgr_time_zone: Europe/Berlin
+badgr_language_code: de-de
+badgr_approved_issuers_only: False
+badgr_gdpr_compliance_notify_on_first_award: True

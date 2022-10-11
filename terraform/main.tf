@@ -14,6 +14,7 @@ module "db" {
   source   = "./db"
   subnets  = module.network.private_subnet
   mysql_sg = module.network.mysql_sg
+  db_password = var.db_password
 }
 
 module "memcached" {

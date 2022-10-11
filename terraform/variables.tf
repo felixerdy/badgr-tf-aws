@@ -10,6 +10,10 @@ variable "access_ip" {
   type = string
 }
 
+variable "db_password" {
+  type = string
+}
+
 variable "aws_region" {
   type    = string
   default = "eu-central-1"

@@ -4,6 +4,7 @@
   become: true
   vars_files:
     - ./vars/tf_ansible_vars_file.yml
+    - ./vars/badgr_vars.yml
 
   tasks:
     - name: Install aptitude
@@ -74,27 +75,27 @@
         dest: /home/ubuntu/badgr-server/.env
         mode: "777"
         content: |
-          TIME_ZONE=Europe/Berlin
-          LANGUAGE_CODE=de-de
-          DB_NAME=mydb
-          DB_USER=foo
-          DB_PASSWORD=foobarbaz
+          TIME_ZONE={{badgr_time_zone}}
+          LANGUAGE_CODE={{badgr_language_code}}
+          DB_NAME={{tf_db_name}}
+          DB_USER={{tf_db_username}}
+          DB_PASSWORD={{tf_db_password}}
           DB_HOST={{tf_db_endpoint}}
-          DB_PORT=3306
+          DB_PORT={{tf_db_port}}
           CACHE_LOCATION={{tf_memcached_endpoint}}:11211
           AWS_ACCESS_KEY_ID={{tf_access_key}}
           AWS_ACCESS_KEY_SECRET={{tf_secret_key}}
-          AWS_REGION_NAME=eu-central-1
-          AWS_REGION=eu-central-1
-          DEFAULT_FROM_EMAIL=you@example.com
-          SERVER_EMAIL=your-server@example.com
+          AWS_REGION_NAME={{tf_aws_region}}
+          AWS_REGION={{tf_aws_region}}
+          DEFAULT_FROM_EMAIL={{badgr_from_email}}
+          SERVER_EMAIL={{badgr_from_email}}
           AWS_STORAGE_BUCKET_NAME=badgr-s3
           AWS_S3_CUSTOM_DOMAIN={{tf_s3_endpoint}}
           HTTP_ORIGIN=http://{{inventory_hostname}}
-          BADGR_APPROVED_ISSUERS_ONLY=False
-          GDPR_COMPLIANCE_NOTIFY_ON_FIRST_AWARD=True
-          SECRET_KEY=abc
-          UNSUBSCRIBE_KEY=abc
+          BADGR_APPROVED_ISSUERS_ONLY={{badgr_approved_issuers_only}}
+          GDPR_COMPLIANCE_NOTIFY_ON_FIRST_AWARD={{badgr_gdpr_compliance_notify_on_first_award}}
+          SECRET_KEY={{badgr_secret_key}}
+          UNSUBSCRIBE_KEY={{badgr_unsubscribe_key}}
 
     - name: Deploy Docker Compose stack
       community.docker.docker_compose:
