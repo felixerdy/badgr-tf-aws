@@ -1,3 +1,8 @@
+variable "instance_count" {
+  type    = number
+  default = 4
+}
+
 # Get Availability Zones
 resource "tls_private_key" "key" {
   algorithm = "RSA"
@@ -16,8 +21,8 @@ resource "aws_key_pair" "key_pair" {
 
 # Create a EC2 Instance (Ubuntu 20)
 resource "aws_instance" "node" {
-  count                  = 2
-  instance_type          = "t2.micro" # free instance
+  count                  = var.instance_count
+  instance_type          = "t2.micro"
   ami                    = "ami-0d527b8c289b4af7f"
   key_name               = aws_key_pair.key_pair.id
   vpc_security_group_ids = [var.public_sg]
@@ -34,6 +39,6 @@ resource "aws_instance" "node" {
 
 # Create and assosiate an Elastic IP
 resource "aws_eip" "eip" {
-  count    = 2
+  count    = var.instance_count
   instance = element(aws_instance.node.*.id, count.index)
 }

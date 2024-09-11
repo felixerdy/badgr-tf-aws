@@ -69,6 +69,7 @@
       ansible.builtin.git:
         repo: https://github.com/reedu-reengineering-education/badgr-server.git
         dest: /home/ubuntu/badgr-server
+        version: nginx-cors
 
     - name: Creating .env file
       ansible.builtin.copy:
@@ -100,12 +101,13 @@
     - name: Deploy Docker Compose stack
       community.docker.docker_compose:
         project_src: /home/ubuntu/badgr-server
+        build: true
+        nocache: true
         files:
           - docker-compose.standalone.yml
 
     - name: Run migration script
-      when: ansible_hostname == play_hosts[0]
-      run_once: true
+      changed_when: false
       ansible.builtin.command:
         docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
         exec api python /badgr_server/manage.py migrate
@@ -125,5 +127,5 @@
     # - name: Create superuser
     #   changed_when: false
     #   ansible.builtin.command:
-    #     docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
-    #     exec api python /badgr_server/manage.py createsuperuser --noinput --username user --email user@email.com
+    # docker-compose -f /home/ubuntu/badgr-server/docker-compose.standalone.yml \
+    # exec api python /badgr_server/manage.py createsuperuser --noinput --username user --email user@email.com
